@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>YZ Store — betaaldemo</title>
+<style>
+  :root{
+    --bg:#0e1112;
+    --kaart:#171a1b;
+    --tekst:#f2f3ed;
+    --accent:#d7ff3f;
+    --rood:#ff6b62;
+    --grijs:#a7ada6;
+    --rand:#262b2d;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--tekst);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;min-height:100vh}
+  button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+  button:disabled{opacity:.45;cursor:not-allowed}
+
+  header{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 18px;background:#131617;border-bottom:1px solid var(--rand)}
+  .logo{width:38px;height:38px;border-radius:10px;background:var(--accent);color:#10130a;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:17px}
+  h1{font-size:17px;font-weight:700}
+  #zoek{flex:1 1 200px;min-width:150px;padding:10px 14px;border-radius:10px;border:1px solid var(--rand);background:var(--kaart);color:var(--tekst);outline:none}
+  #zoek:focus{border-color:var(--accent)}
+  .knop.accent{background:var(--accent);color:#10130a;font-weight:700;border-radius:10px;padding:10px 16px}
+  .knop.accent:hover:not(:disabled){filter:brightness(1.07)}
+  .badge{display:inline-block;min-width:22px;padding:2px 6px;margin-left:8px;border-radius:999px;background:#10130a;color:var(--accent);font-weight:800;font-size:13px;text-align:center}
+
+  main{max-width:1080px;margin:0 auto;padding:22px 16px 90px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+  .kaart{background:var(--kaart);border:1px solid var(--rand);border-radius:14px;padding:10px;cursor:pointer;transition:transform .15s ease,border-color .15s ease}
+  .kaart:hover,.kaart:focus{transform:translateY(-3px);border-color:var(--accent);outline:none}
+  .foto{aspect-ratio:1/1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:52px;user-select:none}
+  .kaart h3{font-size:14.5px;font-weight:600;margin:10px 2px 4px;line-height:1.3}
+  .prijs{color:var(--accent);font-weight:700;font-size:15px}
+  .leeg{color:var(--grijs);padding:20px 4px}
+
+  .overlay{position:fixed;inset:0;background:rgba(4,6,6,.7);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+  .verberg{display:none}
+  .venster{position:relative;background:var(--kaart);border:1px solid var(--rand);border-radius:16px;padding:22px;width:min(430px,100%)}
+  .venster.midden{text-align:center}
+  .sluit{position:absolute;top:8px;right:10px;font-size:26px;line-height:1;color:var(--grijs)}
+  .sluit:hover{color:var(--tekst)}
+  .venster h2{font-size:19px;margin-bottom:6px}
+  #dTitel{margin-top:14px}
+  .prijs.groot{font-size:22px}
+  .qtyRij{display:flex;align-items:center;gap:14px;margin:16px 0}
+  .qtyRij button{width:36px;height:36px;border-radius:9px;border:1px solid var(--rand);background:#1e2224;font-size:19px;font-weight:700}
+  .qtyRij button:hover{border-color:var(--accent)}
+  .qtyRij span{min-width:26px;text-align:center;font-size:17px;font-weight:700}
+  .breed{width:100%;padding:12px;font-size:15.5px}
+  .knop.whatsapp{display:inline-block;margin-top:14px;padding:10px 16px;border-radius:10px;background:#25d366;color:#08130b;font-weight:700;text-decoration:none}
+
+  .paneel{position:fixed;top:0;right:0;height:100vh;height:100dvh;width:min(410px,100vw);background:var(--kaart);border-left:1px solid var(--rand);z-index:60;transform:translateX(105%);transition:transform .25s ease;display:flex;flex-direction:column;box-shadow:-14px 0 34px rgba(0,0,0,.55)}
+  .paneel.open{transform:none}
+  .paneelKop{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--rand)}
+  .paneelKop .sluit{position:static}
+  .wagenLijst{flex:1;overflow-y:auto;padding:12px 16px}
+  .wagenRij{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #202527}
+  .wagenFoto{width:46px;height:46px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
+  .wagenInfo{flex:1;min-width:0}
+  .wagenInfo strong{display:block;font-size:13.5px;line-height:1.25}
+  .grijs{color:var(--grijs);font-size:12.5px}
+  .qtyRij.klein{margin:0;gap:8px}
+  .qtyRij.klein button{width:28px;height:28px;font-size:16px}
+  .qtyRij.klein span{font-size:14px;min-width:20px}
+  .rijTotaal{min-width:66px;text-align:right;font-weight:700;font-size:13.5px}
+  .paneelOnder{border-top:1px solid var(--rand);padding:14px 16px;display:grid;gap:10px}
+  .lbl{font-size:13px;color:var(--grijs)}
+  textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--rand);background:#1e2224;color:var(--tekst);resize:vertical;font:inherit;font-size:14px}
+  textarea:focus{outline:none;border-color:var(--accent)}
+  .subtotaalRij{display:flex;justify-content:space-between;font-size:16px}
+  .hint{color:var(--rood);font-size:13px;font-weight:600}
+
+  .spinner{width:44px;height:44px;border-radius:50%;border:4px solid #2a2f31;border-top-color:var(--accent);animation:draai .8s linear infinite;margin:6px auto 14px}
+  @keyframes draai{to{transform:rotate(360deg)}}
+  #betaalBedrag{font-size:26px;color:var(--accent);display:block;margin:6px 0 4px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">YZ</div>
+  <h1>YZ Store — betaaldemo</h1>
+  <input id="zoek" type="search" placeholder="Zoek producten…" autocomplete="off">
+  <button id="wagenKnop" class="knop accent" type="button">🛒 Winkelwagen<span id="badge" class="badge">0</span></button>
+</header>
+
+<main>
+  <div id="grid" class="grid"></div>
+</main>
+
+<!-- Product-detail -->
+<div id="detailOverlay" class="overlay verberg">
+  <div class="venster">
+    <button class="sluit" data-sluit="detailOverlay" type="button" aria-label="Sluiten">×</button>
+    <div id="dFoto" class="foto"></div>
+    <h2 id="dTitel"></h2>
+    <p id="dPrijs" class="prijs groot"></p>
+    <div class="qtyRij">
+      <button id="dMinder" type="button" aria-label="Minder">−</button>
+      <span id="dAantal">1</span>
+      <button id="dMeer" type="button" aria-label="Meer">+</button>
+    </div>
+    <button id="dNaarWagen" class="knop accent breed" type="button">In winkelwagen</button>
+  </div>
+</div>
+
+<!-- Winkelwagen -->
+<aside id="wagenPaneel" class="paneel">
+  <div class="paneelKop">
+    <h2>Winkelwagen</h2>
+    <button id="sluitWagen" class="sluit" type="button" aria-label="Sluiten">×</button>
+  </div>
+  <div id="wagenLijst" class="wagenLijst"></div>
+  <div class="paneelOnder">
+    <label class="lbl" for="notitie">Opmerking (maat, rugnummer...)</label>
+    <textarea id="notitie" rows="2" placeholder="Bijv. maat L, rugnummer 10…"></textarea>
+    <div class="subtotaalRij"><span>Subtotaal</span><strong id="subtotaal">€ 0,00</strong></div>
+    <p id="minHint" class="hint verberg">Minimum bestelling is € 10,00.</p>
+    <button id="afrekenKnop" class="knop accent breed" type="button" disabled>Afrekenen met iDEAL</button>
+  </div>
+</aside>
+
+<!-- iDEAL-doorsturing -->
+<div id="betaalOverlay" class="overlay verberg">
+  <div class="venster midden">
+    <div class="spinner" aria-hidden="true"></div>
+    <h2>Je wordt doorgestuurd naar iDEAL</h2>
+    <p>Te betalen:</p>
+    <strong id="betaalBedrag">€ 0,00</strong>
+    <p id="afrondingRegel" class="grijs"></p>
+    <p class="grijs">Niet gelukt of liever via app?</p>
+    <a id="waLink" class="knop whatsapp" href="https://wa.me/31684805378" target="_blank" rel="noopener">Bestel via WhatsApp</a>
+  </div>
+</div>
+
+<script>
+'use strict';
+(function () {
+
+  // Demo-catalogus (mock-producten, geen echte foto's).
+  // Prijs = HELE euro's: de betaalpartner rekent het bedrag af op hele euro's,
+  // zo is het iDEAL-bedrag altijd exact gelijk aan het wagentotaal.
+  var PRODUCTEN = [
+    { id: 'p1',  titel: 'Hoodie Essentieel Zwart',       prijs: 49, emoji: '👕', tint: '#242a2e' },
+    { id: 'p2',  titel: 'Sneaker Runner Wit',             prijs: 109, emoji: '👟', tint: '#2c2e2b' },
+    { id: 'p3',  titel: 'Shirt Bedrukt Custom',           prijs: 29, emoji: '🎽', tint: '#25302c' },
+    { id: 'p4',  titel: 'Trainingspak Set Navy',          prijs: 79, emoji: '🥋', tint: '#222938' },
+    { id: 'p5',  titel: 'Pet Classic Zwart',              prijs: 24, emoji: '🧢', tint: '#2a2b2d' },
+    { id: 'p6',  titel: 'Tas Shopper Beige',              prijs: 59, emoji: '👜', tint: '#3a352a' },
+    { id: 'p7',  titel: 'Shorts Zomer Grijs',             prijs: 19, emoji: '🩳', tint: '#303033' },
+    { id: 'p8',  titel: 'Sokken 3-pack Wit',              prijs: 9,  emoji: '🧦', tint: '#34332f' },
+    { id: 'p9',  titel: 'Bodywarmer Glanzend Zwart',      prijs: 69, emoji: '🦺', tint: '#1e2225' },
+    { id: 'p10', titel: 'Bril Zonnebril Goud',            prijs: 34, emoji: '🕶️', tint: '#373021' }
+  ];
+
+  var CHECKOUT_URL = 'https://rep-finance-1t6z.onrender.com/checkout?amount=';
+  var WA_LINK = 'https://wa.me/31684805378';
+  var MIN_BESTELLING = 10;
+
+  // Elementen
+  var gridEl = document.getElementById('grid');
+  var zoekEl = document.getElementById('zoek');
+  var badgeEl = document.getElementById('badge');
+  var wagenKnopEl = document.getElementById('wagenKnop');
+  var wagenPaneelEl = document.getElementById('wagenPaneel');
+  var wagenLijstEl = document.getElementById('wagenLijst');
+  var sluitWagenEl = document.getElementById('sluitWagen');
+  var notitieEl = document.getElementById('notitie');
+  var subtotaalEl = document.getElementById('subtotaal');
+  var minHintEl = document.getElementById('minHint');
+  var afrekenEl = document.getElementById('afrekenKnop');
+  var detailOverlayEl = document.getElementById('detailOverlay');
+  var dFotoEl = document.getElementById('dFoto');
+  var dTitelEl = document.getElementById('dTitel');
+  var dPrijsEl = document.getElementById('dPrijs');
+  var dAantalEl = document.getElementById('dAantal');
+  var dMeerEl = document.getElementById('dMeer');
+  var dMinderEl = document.getElementById('dMinder');
+  var dNaarWagenEl = document.getElementById('dNaarWagen');
+  var betaalOverlayEl = document.getElementById('betaalOverlay');
+  var betaalBedragEl = document.getElementById('betaalBedrag');
+  var waLinkEl = document.getElementById('waLink');
+
+  // Staat
+  var wagen = [];        // [{id, aantal}]
+  var notitie = '';
+  var detailId = null;
+  var detailAantal = 1;
+
+  // Hulpjes
+  function euro(bedrag) {
+    return '€ ' + Number(bedrag).toFixed(2).replace('.', ',');
+  }
+  function lees(sleutel) {
+    try { return window.localStorage.getItem(sleutel); } catch (e) { return null; }
+  }
+  function schrijf(sleutel, waarde) {
+    try { window.localStorage.setItem(sleutel, waarde); } catch (e) {}
+  }
+  function productBijId(id) {
+    for (var i = 0; i < PRODUCTEN.length; i++) {
+      if (PRODUCTEN[i].id === id) { return PRODUCTEN[i]; }
+    }
+    return null;
+  }
+  function toonOverlay(el) { el.classList.remove('verberg'); }
+  function verbergOverlay(el) { el.classList.add('verberg'); }
+
+  // Opslag (overleeft herladen)
+  function laadOpslag() {
+    var rauw = lees('yzdemo_wagen');
+    if (rauw) {
+      try {
+        var geladen = JSON.parse(rauw);
+        if (Object.prototype.toString.call(geladen) === '[object Array]') {
+          geladen.forEach(function (r) {
+            var p = productBijId(r && r.id);
+            if (p && typeof r.aantal === 'number' && r.aantal > 0) {
+              wagen.push({ id: p.id, aantal: Math.floor(r.aantal) });
+            }
+          });
+        }
+      } catch (e) { wagen = []; }
+    }
+    notitie = lees('yzdemo_notitie') || '';
+    notitieEl.value = notitie;
+  }
+  function slaWagenOp() {
+    schrijf('yzdemo_wagen', JSON.stringify(wagen));
+  }
+
+  // Berekeningen
+  function subtotaal() {
+    var totaal = 0;
+    wagen.forEach(function (r) {
+      var p = productBijId(r.id);
+      if (p) { totaal += p.prijs * r.aantal; }
+    });
+    return totaal;
+  }
+  function telItems() {
+    var n = 0;
+    wagen.forEach(function (r) { n += r.aantal; });
+    return n;
+  }
+
+  // Grid + zoeken
+  function renderGrid() {
+    var q = zoekEl.value.trim().toLowerCase();
+    var html = '';
+    PRODUCTEN.forEach(function (p) {
+      if (q && p.titel.toLowerCase().indexOf(q) === -1) { return; }
+      html += '<article class="kaart" data-id="' + p.id + '" tabindex="0">' +
+        '<div class="foto" style="background:' + p.tint + '">' + p.emoji + '</div>' +
+        '<h3>' + p.titel + '</h3>' +
+        '<p class="prijs">' + euro(p.prijs) + '</p>' +
+        '</article>';
+    });
+    gridEl.innerHTML = html || '<p class="leeg">Geen producten gevonden.</p>';
+  }
+
+  // Detail-overlay
+  function openDetail(id) {
+    var p = productBijId(id);
+    if (!p) { return; }
+    detailId = p.id;
+    detailAantal = 1;
+    dFotoEl.style.background = p.tint;
+    dFotoEl.textContent = p.emoji;
+    dTitelEl.textContent = p.titel;
+    dPrijsEl.textContent = euro(p.prijs);
+    dAantalEl.textContent = '1';
+    toonOverlay(detailOverlayEl);
+  }
+
+  // Winkelwagen renderen
+  function renderWagen() {
+    badgeEl.textContent = String(telItems());
+    var html = '';
+    wagen.forEach(function (r) {
+      var p = productBijId(r.id);
+      if (!p) { return; }
+      html += '<div class="wagenRij">' +
+        '<div class="wagenFoto" style="background:' + p.tint + '">' + p.emoji + '</div>' +
+        '<div class="wagenInfo"><strong>' + p.titel + '</strong><span class="grijs">' + euro(p.prijs) + ' p/st</span></div>' +
+        '<div class="qtyRij klein">' +
+          '<button class="mini" type="button" data-act="min" data-id="' + r.id + '" aria-label="Minder">−</button>' +
+          '<span>' + r.aantal + '</span>' +
+          '<button class="mini" type="button" data-act="plus" data-id="' + r.id + '" aria-label="Meer">+</button>' +
+        '</div>' +
+        '<div class="rijTotaal">' + euro(p.prijs * r.aantal) + '</div>' +
+        '</div>';
+    });
+    wagenLijstEl.innerHTML = html || '<p class="leeg">Je winkelwagen is leeg.</p>';
+
+    var totaal = subtotaal();
+    subtotaalEl.textContent = euro(totaal);
+    afrekenEl.disabled = (wagen.length === 0) || (totaal < MIN_BESTELLING);
+    var teWeinig = (wagen.length > 0) && (totaal < MIN_BESTELLING);
+    minHintEl.classList.toggle('verberg', !teWeinig);
+  }
+
+  function zetAantal(id, nieuw) {
+    if (nieuw <= 0) {
+      wagen = wagen.filter(function (r) { return r.id !== id; });
+    } else {
+      wagen.forEach(function (r) { if (r.id === id) { r.aantal = nieuw; } });
+    }
+    slaWagenOp();
+    renderWagen();
+  }
+
+  // WhatsApp-tekst (bestelregels + opmerking)
+  function whatsappTekst() {
+    var regels = ['Bestelling via YZ Store:'];
+    wagen.forEach(function (r) {
+      var p = productBijId(r.id);
+      if (p) {
+        regels.push('- ' + r.aantal + '× ' + p.titel + ' — ' + euro(p.prijs * r.aantal));
+      }
+    });
+    regels.push('Totaal: ' + euro(subtotaal()));
+    if (notitie.trim()) { regels.push('Opmerking: ' + notitie.trim()); }
+    return regels.join('\n');
+  }
+
+  // Afrekenen: iDEAL-bedrag = exact het wagentotaal. De betaalpartner rekent
+  // af op hele euro's; als het totaal centen heeft tellen we die als zichtbare
+  // afronding bovenop, zodat het betaalde bedrag altijd klopt met het getoonde.
+  function afrekenen() {
+    var totaal = subtotaal();
+    if (wagen.length === 0 || totaal < MIN_BESTELLING) { return; }
+    var teBetalen = Math.ceil(totaal);
+    var afronding = teBetalen - totaal;
+    betaalBedragEl.textContent = euro(teBetalen);
+    var afrEl = document.getElementById('afrondingRegel');
+    if (afrEl) { afrEl.textContent = afronding > 0 ? 'incl. afronding ' + euro(afronding) : ''; }
+    var waTekst = whatsappTekst();
+    if (afronding > 0) { waTekst += '\n(afronding ' + euro(afronding) + ' verrekenen we)'; }
+    waLinkEl.href = WA_LINK + '?text=' + encodeURIComponent(waTekst);
+    toonOverlay(betaalOverlayEl);
+    window.setTimeout(function () {
+      window.location.href = CHECKOUT_URL + teBetalen.toFixed(2);
+    }, 700);
+  }
+
+  // Gebeurtenissen
+  zoekEl.addEventListener('input', renderGrid);
+
+  gridEl.addEventListener('click', function (ev) {
+    var kaart = ev.target && ev.target.closest ? ev.target.closest('.kaart') : null;
+    if (kaart) { openDetail(kaart.getAttribute('data-id')); }
+  });
+  gridEl.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Enter') { return; }
+    var kaart = ev.target && ev.target.closest ? ev.target.closest('.kaart') : null;
+    if (kaart) { openDetail(kaart.getAttribute('data-id')); }
+  });
+
+  dMeerEl.addEventListener('click', function () {
+    detailAantal += 1;
+    dAantalEl.textContent = String(detailAantal);
+  });
+  dMinderEl.addEventListener('click', function () {
+    if (detailAantal > 1) {
+      detailAantal -= 1;
+      dAantalEl.textContent = String(detailAantal);
+    }
+  });
+  dNaarWagenEl.addEventListener('click', function () {
+    if (!detailId) { return; }
+    var bestaand = null;
+    wagen.forEach(function (r) { if (r.id === detailId) { bestaand = r; } });
+    if (bestaand) { bestaand.aantal += detailAantal; }
+    else { wagen.push({ id: detailId, aantal: detailAantal }); }
+    slaWagenOp();
+    renderWagen();
+    verbergOverlay(detailOverlayEl);
+    wagenPaneelEl.classList.add('open');
+  });
+
+  detailOverlayEl.addEventListener('click', function (ev) {
+    if (ev.target === detailOverlayEl) { verbergOverlay(detailOverlayEl); }
+  });
+
+  var sluitKnoppen = document.querySelectorAll('[data-sluit]');
+  for (var s = 0; s < sluitKnoppen.length; s++) {
+    sluitKnoppen[s].addEventListener('click', function () {
+      var el = document.getElementById(this.getAttribute('data-sluit'));
+      if (el) { verbergOverlay(el); }
+    });
+  }
+
+  wagenKnopEl.addEventListener('click', function () {
+    wagenPaneelEl.classList.add('open');
+  });
+  sluitWagenEl.addEventListener('click', function () {
+    wagenPaneelEl.classList.remove('open');
+  });
+
+  wagenLijstEl.addEventListener('click', function (ev) {
+    var knop = ev.target && ev.target.closest ? ev.target.closest('button[data-act]') : null;
+    if (!knop) { return; }
+    var id = knop.getAttribute('data-id');
+    var rij = null;
+    wagen.forEach(function (r) { if (r.id === id) { rij = r; } });
+    if (!rij) { return; }
+    if (knop.getAttribute('data-act') === 'plus') { zetAantal(id, rij.aantal + 1); }
+    else { zetAantal(id, rij.aantal - 1); }
+  });
+
+  notitieEl.addEventListener('input', function () {
+    notitie = notitieEl.value;
+    schrijf('yzdemo_notitie', notitie);
+  });
+
+  afrekenEl.addEventListener('click', afrekenen);
+
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape') {
+      verbergOverlay(detailOverlayEl);
+      wagenPaneelEl.classList.remove('open');
+    }
+  });
+
+  // Start
+  laadOpslag();
+  renderGrid();
+  renderWagen();
+})();
+</script>
+</body>
+</html>
