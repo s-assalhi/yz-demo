@@ -1,438 +1,535 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="nl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
-<title>YZ Store — betaaldemo</title>
+<meta name="theme-color" content="#0b0f0e">
+<title>YZ Store — Premium streetwear</title>
 <style>
-  :root{
-    --bg:#0e1112;
-    --kaart:#171a1b;
-    --tekst:#f2f3ed;
-    --accent:#d7ff3f;
-    --rood:#ff6b62;
-    --grijs:#a7ada6;
-    --rand:#262b2d;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--tekst);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;min-height:100vh}
-  button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
-  button:disabled{opacity:.45;cursor:not-allowed}
+:root{
+  --bg:#0b0f0e; --paneel:#171a1b; --paneel2:#1d2122; --rand:#262b2c; --rand2:#343b3d;
+  --tekst:#eef2f0; --sec:#9aa1ad; --accent:#d7ff3f; --accent-donker:#c4e935;
+  --radius:12px; --schaduw:0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none !important}
+body{background:var(--bg);color:var(--tekst);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+body.lock{overflow:hidden}
+a{color:var(--accent)}
+button{font-family:inherit;cursor:pointer}
+img{display:block}
+::selection{background:var(--accent);color:#111}
 
-  header{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 18px;background:#131617;border-bottom:1px solid var(--rand)}
-  .logo{width:38px;height:38px;border-radius:10px;background:var(--accent);color:#10130a;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:17px}
-  h1{font-size:17px;font-weight:700}
-  #zoek{flex:1 1 200px;min-width:150px;padding:10px 14px;border-radius:10px;border:1px solid var(--rand);background:var(--kaart);color:var(--tekst);outline:none}
-  #zoek:focus{border-color:var(--accent)}
-  .knop.accent{background:var(--accent);color:#10130a;font-weight:700;border-radius:10px;padding:10px 16px}
-  .knop.accent:hover:not(:disabled){filter:brightness(1.07)}
-  .badge{display:inline-block;min-width:22px;padding:2px 6px;margin-left:8px;border-radius:999px;background:#10130a;color:var(--accent);font-weight:800;font-size:13px;text-align:center}
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:50;background:rgba(11,15,14,.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--rand)}
+.kop{max-width:1360px;margin:0 auto;padding:10px 14px;display:flex;flex-direction:column;gap:10px}
+.merk-rij{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{display:flex;align-items:center;gap:10px;min-width:0}
+.logo-blok{width:36px;height:36px;flex:0 0 auto;border-radius:12px;background:var(--accent);color:#101408;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.95rem;letter-spacing:.02em}
+.logo-tekst{display:flex;flex-direction:column;min-width:0}
+.logo-tekst b{font-size:1.02rem;letter-spacing:.01em;white-space:nowrap}
+.logo-tekst span{font-size:.7rem;color:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#zoek{width:100%;background:var(--paneel);border:1px solid var(--rand);color:var(--tekst);border-radius:12px;padding:11px 14px;font-size:16px;outline:none;transition:border-color .15s, box-shadow .15s}
+#zoek::placeholder{color:#6d7572}
+#zoek:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(215,255,63,.12)}
+@media(min-width:720px){
+  .kop{flex-direction:row;align-items:center;padding:12px 22px}
+  #zoek{flex:1;max-width:520px;margin-left:auto}
+}
 
-  main{max-width:1080px;margin:0 auto;padding:22px 16px 90px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
-  .kaart{background:var(--kaart);border:1px solid var(--rand);border-radius:14px;padding:10px;cursor:pointer;transition:transform .15s ease,border-color .15s ease}
-  .kaart:hover,.kaart:focus{transform:translateY(-3px);border-color:var(--accent);outline:none}
-  .foto{aspect-ratio:1/1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:52px;user-select:none}
-  .kaart h3{font-size:14.5px;font-weight:600;margin:10px 2px 4px;line-height:1.3}
-  .prijs{color:var(--accent);font-weight:700;font-size:15px}
-  .leeg{color:var(--grijs);padding:20px 4px}
+/* ---------- categorie-chips ---------- */
+#chips{display:flex;gap:8px;overflow-x:auto;max-width:1360px;margin:0 auto;padding:9px 14px;scrollbar-width:none}
+#chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;display:flex;align-items:center;gap:7px;background:var(--paneel);border:1px solid var(--rand);color:var(--sec);padding:8px 13px;border-radius:999px;font-size:.84rem;white-space:nowrap;transition:color .15s,border-color .15s,background .15s}
+.chip .n{font-size:.7rem;background:rgba(255,255,255,.07);border-radius:999px;padding:1px 7px}
+.chip:hover{color:var(--tekst);border-color:var(--rand2)}
+.chip.actief{background:var(--accent);border-color:var(--accent);color:#101408;font-weight:700}
+.chip.actief .n{background:rgba(0,0,0,.15);color:#101408}
 
-  .overlay{position:fixed;inset:0;background:rgba(4,6,6,.7);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
-  .verberg{display:none}
-  .venster{position:relative;background:var(--kaart);border:1px solid var(--rand);border-radius:16px;padding:22px;width:min(430px,100%)}
-  .venster.midden{text-align:center}
-  .sluit{position:absolute;top:8px;right:10px;font-size:26px;line-height:1;color:var(--grijs)}
-  .sluit:hover{color:var(--tekst)}
-  .venster h2{font-size:19px;margin-bottom:6px}
-  #dTitel{margin-top:14px}
-  .prijs.groot{font-size:22px}
-  .qtyRij{display:flex;align-items:center;gap:14px;margin:16px 0}
-  .qtyRij button{width:36px;height:36px;border-radius:9px;border:1px solid var(--rand);background:#1e2224;font-size:19px;font-weight:700}
-  .qtyRij button:hover{border-color:var(--accent)}
-  .qtyRij span{min-width:26px;text-align:center;font-size:17px;font-weight:700}
-  .breed{width:100%;padding:12px;font-size:15.5px}
-  .knop.whatsapp{display:inline-block;margin-top:14px;padding:10px 16px;border-radius:10px;background:#25d366;color:#08130b;font-weight:700;text-decoration:none}
+/* ---------- demo-balk ---------- */
+#demoBalk{background:rgba(215,255,63,.09);border-bottom:1px solid rgba(215,255,63,.25);color:var(--accent);font-size:.8rem;padding:8px 14px;text-align:center}
 
-  .paneel{position:fixed;top:0;right:0;height:100vh;height:100dvh;width:min(410px,100vw);background:var(--kaart);border-left:1px solid var(--rand);z-index:60;transform:translateX(105%);transition:transform .25s ease;display:flex;flex-direction:column;box-shadow:-14px 0 34px rgba(0,0,0,.55)}
-  .paneel.open{transform:none}
-  .paneelKop{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--rand)}
-  .paneelKop .sluit{position:static}
-  .wagenLijst{flex:1;overflow-y:auto;padding:12px 16px}
-  .wagenRij{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #202527}
-  .wagenFoto{width:46px;height:46px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
-  .wagenInfo{flex:1;min-width:0}
-  .wagenInfo strong{display:block;font-size:13.5px;line-height:1.25}
-  .grijs{color:var(--grijs);font-size:12.5px}
-  .qtyRij.klein{margin:0;gap:8px}
-  .qtyRij.klein button{width:28px;height:28px;font-size:16px}
-  .qtyRij.klein span{font-size:14px;min-width:20px}
-  .rijTotaal{min-width:66px;text-align:right;font-weight:700;font-size:13.5px}
-  .paneelOnder{border-top:1px solid var(--rand);padding:14px 16px;display:grid;gap:10px}
-  .lbl{font-size:13px;color:var(--grijs)}
-  textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--rand);background:#1e2224;color:var(--tekst);resize:vertical;font:inherit;font-size:14px}
-  textarea:focus{outline:none;border-color:var(--accent)}
-  .subtotaalRij{display:flex;justify-content:space-between;font-size:16px}
-  .hint{color:var(--rood);font-size:13px;font-weight:600}
+/* ---------- grid ---------- */
+main{max-width:1360px;margin:0 auto;padding:12px 14px 110px}
+#teller{color:var(--sec);font-size:.8rem;margin:2px 2px 12px}
+#grid{display:grid;gap:12px;grid-template-columns:repeat(2,1fr)}
+@media(min-width:640px){
+  #grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+  main{padding:16px 22px 110px}
+}
+.product{background:var(--paneel);border:1px solid var(--rand);border-radius:var(--radius);overflow:hidden;cursor:pointer;display:flex;flex-direction:column;content-visibility:auto;contain-intrinsic-size:auto 300px;transition:transform .16s ease,border-color .16s,box-shadow .16s}
+.product:hover{transform:translateY(-3px);border-color:var(--rand2);box-shadow:var(--schaduw)}
+.product:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.foto{position:relative;aspect-ratio:1/1;background:#232a28;overflow:hidden}
+.foto img{width:100%;height:100%;object-fit:cover}
+.product .foto{background:radial-gradient(120% 120% at 50% 0%,#1d2122 0%,#141818 70%)}
+.foto.kapot{background:#232a28}
+.foto.kapot::after{content:'👟';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2.3rem;opacity:.5}
+.info{padding:10px 12px 12px;display:flex;flex-direction:column;gap:3px}
+.naam{font-size:.88rem;font-weight:650;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cat{font-size:.72rem;color:var(--sec)}
+.prijs{font-size:.95rem;font-weight:800;margin-top:3px}
+.voor{font-size:.7rem;color:var(--sec)}
+#leeg{color:var(--sec);text-align:center;padding:60px 0;font-size:.9rem}
+#sentinel{height:1px}
 
-  .spinner{width:44px;height:44px;border-radius:50%;border:4px solid #2a2f31;border-top-color:var(--accent);animation:draai .8s linear infinite;margin:6px auto 14px}
-  @keyframes draai{to{transform:rotate(360deg)}}
-  #betaalBedrag{font-size:26px;color:var(--accent);display:block;margin:6px 0 4px}
+/* ---------- product-overlay ---------- */
+#overlay{position:fixed;inset:0;z-index:90;background:rgba(4,6,5,.78);backdrop-filter:blur(5px);display:none;align-items:flex-end;justify-content:center}
+#overlay.open{display:flex}
+@media(min-width:641px){#overlay{align-items:center;padding:24px}}
+.overlay-doos{position:relative;background:var(--paneel);border:1px solid var(--rand2);border-radius:16px 16px 0 0;width:100%;max-height:94vh;overflow:auto;box-shadow:var(--schaduw);animation:omhoog .2s ease-out}
+@keyframes omhoog{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
+@media(min-width:641px){.overlay-doos{border-radius:16px;max-width:880px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}}
+.galerij{padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--paneel2);min-width:0}
+@media(min-width:641px){.galerij{padding:16px}}
+.hoofd-foto{border-radius:12px;background:radial-gradient(120% 120% at 50% 0%,#1d2122 0%,#141818 70%)}
+.hoofd-foto.kapot{background:#232a28}
+.hoofd-foto img{width:100%;height:100%;object-fit:cover}
+#thumbs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:thin}
+.thumb{flex:0 0 auto;width:56px;height:56px;border-radius:10px;border:2px solid transparent;overflow:hidden;background:#232a28;padding:0;position:relative}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb.kapot::after{content:'👟';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1rem;opacity:.5}
+.thumb.actief{border-color:var(--accent)}
+.details{padding:6px 18px 22px;display:flex;flex-direction:column;gap:10px;min-width:0}
+@media(min-width:641px){.details{padding:26px}}
+.details h2{font-size:1.2rem;line-height:1.25}
+@media(min-width:641px){.details h2{font-size:1.45rem}}
+.prijs-groot{color:var(--accent);font-size:1.3rem;font-weight:800}
+.opmerk{color:var(--sec);font-size:.84rem;line-height:1.5}
+.knop-primair{background:var(--accent);color:#101408;border:none;border-radius:12px;padding:14px 20px;font-size:.95rem;font-weight:800;transition:background .15s,transform .08s}
+.knop-primair:hover{background:var(--accent-donker)}
+.knop-primair:active{transform:scale(.985)}
+.knop-primair:disabled{opacity:.4;cursor:not-allowed}
+.sluit{position:absolute;top:10px;right:10px;z-index:5;width:38px;height:38px;border-radius:999px;background:rgba(23,26,27,.9);border:1px solid var(--rand2);color:var(--sec);font-size:1rem}
+.sluit:hover{color:var(--tekst)}
+
+/* ---------- winkelmand ---------- */
+#wagenAchtergrond{position:fixed;inset:0;z-index:98;background:rgba(4,6,5,.6);backdrop-filter:blur(2px);display:none}
+#wagenAchtergrond.open{display:block}
+#wagen{position:fixed;top:0;right:0;bottom:0;z-index:99;width:min(420px,100vw);background:var(--paneel);border-left:1px solid var(--rand2);transform:translateX(105%);transition:transform .25s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,.5)}
+#wagen.open{transform:none}
+.wagen-kop{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--rand)}
+.wagen-kop h3{font-size:1.05rem}
+#wagenSluit{background:none;border:none;color:var(--sec);font-size:1.1rem;width:34px;height:34px;border-radius:10px}
+#wagenSluit:hover{color:var(--tekst);background:var(--paneel2)}
+.wagen-lijst{flex:1;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.wagen-rij{display:flex;gap:10px;align-items:center;background:var(--paneel2);border:1px solid var(--rand);border-radius:12px;padding:8px}
+.w-foto{width:54px;height:54px;flex:0 0 auto;border-radius:10px}
+.w-foto.kapot::after{font-size:1.1rem}
+.w-mid{flex:1;min-width:0}
+.w-naam{font-size:.85rem;font-weight:600;line-height:1.3}
+.w-cat{font-size:.7rem;color:var(--sec);margin-top:2px}
+.w-prijs{font-size:.85rem;font-weight:700;white-space:nowrap}
+.w-x{width:30px;height:30px;flex:0 0 auto;border-radius:9px;border:1px solid var(--rand);background:none;color:var(--sec);font-size:.8rem}
+.w-x:hover{color:#ff9d9d;border-color:#5a3232}
+.wagen-leeg{color:var(--sec);text-align:center;padding:40px 10px;font-size:.9rem}
+.wagen-voet{border-top:1px solid var(--rand);padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.subtotaal-rij{display:flex;justify-content:space-between;align-items:center;font-size:.92rem;color:var(--sec)}
+.subtotaal-rij b{color:var(--tekst);font-size:1.05rem}
+#minBericht{color:#ff9d9d;font-size:.82rem;background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.22);border-radius:10px;padding:8px 10px}
+.veilig{font-size:.72rem;color:var(--sec);text-align:center}
+#foutBox{position:absolute;inset:0;z-index:5;background:var(--paneel);display:flex;flex-direction:column;justify-content:center;gap:12px;padding:26px 20px}
+.fout-titel{font-size:1.1rem;font-weight:800}
+#foutTekst{color:var(--sec);font-size:.9rem;line-height:1.55}
+.knop-wa{display:block;text-align:center;background:#20ba5a;color:#fff;border-radius:12px;padding:13px 20px;font-weight:700;text-decoration:none;font-size:.95rem}
+.knop-wa:hover{background:#1aa351}
+.knop-secundair{background:none;border:1px solid var(--rand2);color:var(--tekst);border-radius:12px;padding:12px 20px;font-size:.9rem}
+.knop-secundair:hover{border-color:var(--accent)}
+
+/* ---------- zwevende winkelmand-knop ---------- */
+#wagenFAB{position:fixed;bottom:18px;right:16px;z-index:60;width:58px;height:58px;border-radius:999px;background:var(--accent);border:none;color:#101408;font-size:1.35rem;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(215,255,63,.3);transition:transform .12s}
+#wagenFAB:hover{transform:translateY(-2px)}
+#badge{position:absolute;top:-4px;right:-4px;min-width:22px;height:22px;border-radius:999px;background:#eef2f0;color:#0b0f0e;font-size:.75rem;font-weight:800;line-height:22px;text-align:center;padding:0 5px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--rand);padding:26px 16px 110px;text-align:center;color:var(--sec);font-size:.82rem;line-height:1.7}
+footer a{color:var(--accent);text-decoration:none}
+footer a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">YZ</div>
-  <h1>YZ Store — betaaldemo</h1>
-  <input id="zoek" type="search" placeholder="Zoek producten…" autocomplete="off">
-  <button id="wagenKnop" class="knop accent" type="button">🛒 Winkelwagen<span id="badge" class="badge">0</span></button>
+  <div class="kop">
+    <div class="logo">
+      <div class="logo-blok">YZ</div>
+      <div class="logo-tekst">
+        <b>YZ Store</b>
+        <span>Premium streetwear · elk stuk 1x op voorraad</span>
+      </div>
+    </div>
+    <input id="zoek" type="search" placeholder="Zoek in de collectie…" autocomplete="off">
+  </div>
+  <div id="chips"></div>
 </header>
 
+<div id="demoBalk" hidden>Demo-modus — voorbeeldproducten · afrekenen uitgeschakeld</div>
+
 <main>
-  <div id="grid" class="grid"></div>
+  <div id="teller"></div>
+  <div id="grid"></div>
+  <div id="leeg" hidden>Niks gevonden. Probeer een andere zoekopdracht.</div>
+  <div id="sentinel" aria-hidden="true"></div>
 </main>
 
-<!-- Product-detail -->
-<div id="detailOverlay" class="overlay verberg">
-  <div class="venster">
-    <button class="sluit" data-sluit="detailOverlay" type="button" aria-label="Sluiten">×</button>
-    <div id="dFoto" class="foto"></div>
-    <h2 id="dTitel"></h2>
-    <p id="dPrijs" class="prijs groot"></p>
-    <div class="qtyRij">
-      <button id="dMinder" type="button" aria-label="Minder">−</button>
-      <span id="dAantal">1</span>
-      <button id="dMeer" type="button" aria-label="Meer">+</button>
-    </div>
-    <button id="dNaarWagen" class="knop accent breed" type="button">In winkelwagen</button>
-  </div>
-</div>
+<footer>
+  Vragen? <a href="https://wa.me/31684805378" target="_blank" rel="noopener">WhatsApp ons</a> · na betaling volgt je order-statuspagina
+</footer>
 
-<!-- Winkelwagen -->
-<aside id="wagenPaneel" class="paneel">
-  <div class="paneelKop">
-    <h2>Winkelwagen</h2>
-    <button id="sluitWagen" class="sluit" type="button" aria-label="Sluiten">×</button>
+<button id="wagenFAB" aria-label="Winkelmand openen">🛒<span id="badge" hidden>0</span></button>
+
+<div id="wagenAchtergrond"></div>
+<aside id="wagen" role="dialog" aria-modal="true" aria-label="Winkelmand">
+  <div class="wagen-kop">
+    <h3>Winkelmand</h3>
+    <button id="wagenSluit" aria-label="Sluiten">✕</button>
   </div>
-  <div id="wagenLijst" class="wagenLijst"></div>
-  <div class="paneelOnder">
-    <label class="lbl" for="notitie">Opmerking (maat, rugnummer...)</label>
-    <textarea id="notitie" rows="2" placeholder="Bijv. maat L, rugnummer 10…"></textarea>
-    <div class="subtotaalRij"><span>Subtotaal</span><strong id="subtotaal">€ 0,00</strong></div>
-    <p id="minHint" class="hint verberg">Minimum bestelling is € 10,00.</p>
-    <button id="afrekenKnop" class="knop accent breed" type="button" disabled>Afrekenen met iDEAL</button>
+  <div class="wagen-lijst" id="wagenLijst"></div>
+  <div class="wagen-voet">
+    <div class="subtotaal-rij"><span>Subtotaal</span><b id="subtotaal">€ 0</b></div>
+    <div id="minBericht" hidden></div>
+    <button class="knop-primair" id="afrekKnop" disabled>Afrekenen →</button>
+    <div class="veilig">Na betaling volgt je order-statuspagina</div>
+  </div>
+  <div id="foutBox" hidden>
+    <div class="fout-titel" id="foutTitel"></div>
+    <p id="foutTekst"></p>
+    <a id="foutWa" class="knop-wa" target="_blank" rel="noopener">Bestellen via WhatsApp</a>
+    <button class="knop-secundair" id="foutSluit">Terug naar wagen</button>
   </div>
 </aside>
 
-<!-- iDEAL-doorsturing -->
-<div id="betaalOverlay" class="overlay verberg">
-  <div class="venster midden">
-    <div class="spinner" aria-hidden="true"></div>
-    <h2>Je wordt doorgestuurd naar iDEAL</h2>
-    <p>Te betalen:</p>
-    <strong id="betaalBedrag">€ 0,00</strong>
-    <p id="afrondingRegel" class="grijs"></p>
-    <p class="grijs">Niet gelukt of liever via app?</p>
-    <a id="waLink" class="knop whatsapp" href="https://wa.me/31684805378" target="_blank" rel="noopener">Bestel via WhatsApp</a>
+<div id="overlay" role="dialog" aria-modal="true" aria-label="Product bekijken">
+  <div class="overlay-doos">
+    <button class="sluit" id="overlaySluit" aria-label="Sluiten">✕</button>
+    <div class="galerij">
+      <div class="foto hoofd-foto" id="hoofdKader"><img id="hoofdImg" alt=""></div>
+      <div id="thumbs"></div>
+    </div>
+    <div class="details">
+      <div class="cat" id="ovCat"></div>
+      <h2 id="ovTitel"></h2>
+      <div class="prijs-groot" id="ovPrijs"></div>
+      <p class="opmerk">Elk stuk is 1× op voorraad — op = op. Twijfel over je maat? App ons gerust.</p>
+      <button class="knop-primair" id="ovAdd">🛒 In winkelmand</button>
+    </div>
   </div>
 </div>
 
+<script src="producten.js"></script>
 <script>
 'use strict';
-(function () {
+const BACKEND = "https://rep-finance-1t6z.onrender.com";
+const WA_NUMMER = '31684805378';
+const MIN_BESTEL = 10;
+const BATCH = 60; // kaarten per render-batch
 
-  // Demo-catalogus (mock-producten, geen echte foto's).
-  // Prijs = HELE euro's: de betaalpartner rekent het bedrag af op hele euro's,
-  // zo is het iDEAL-bedrag altijd exact gelijk aan het wagentotaal.
-  var PRODUCTEN = [
-    { id: 'p1',  titel: 'Hoodie Essentieel Zwart',       prijs: 49, emoji: '👕', tint: '#242a2e' },
-    { id: 'p2',  titel: 'Sneaker Runner Wit',             prijs: 109, emoji: '👟', tint: '#2c2e2b' },
-    { id: 'p3',  titel: 'Shirt Bedrukt Custom',           prijs: 29, emoji: '🎽', tint: '#25302c' },
-    { id: 'p4',  titel: 'Trainingspak Set Navy',          prijs: 79, emoji: '🥋', tint: '#222938' },
-    { id: 'p5',  titel: 'Pet Classic Zwart',              prijs: 24, emoji: '🧢', tint: '#2a2b2d' },
-    { id: 'p6',  titel: 'Tas Shopper Beige',              prijs: 59, emoji: '👜', tint: '#3a352a' },
-    { id: 'p7',  titel: 'Shorts Zomer Grijs',             prijs: 19, emoji: '🩳', tint: '#303033' },
-    { id: 'p8',  titel: 'Sokken 3-pack Wit',              prijs: 9,  emoji: '🧦', tint: '#34332f' },
-    { id: 'p9',  titel: 'Bodywarmer Glanzend Zwart',      prijs: 69, emoji: '🦺', tint: '#1e2225' },
-    { id: 'p10', titel: 'Bril Zonnebril Goud',            prijs: 34, emoji: '🕶️', tint: '#373021' }
-  ];
+/* ---------- demo-data (?demo=1 of als producten.js niet laadt) ---------- */
+const DEMO_PRODUCTEN = [
+  {id:'demo-1', titel:'On Cloud Sneakers',        categorie:'Schoenen',              prijs:109, foto:'', fotos:[]},
+  {id:'demo-2', titel:'Essentials Hoodie Grijs',  categorie:'Hoodies & Sweaters',    prijs:69,  foto:'', fotos:[]},
+  {id:'demo-3', titel:'Ajax Trainingsset 24/25',  categorie:'Trainingspakken & Sets',prijs:40,  foto:'', fotos:[]},
+  {id:'demo-4', titel:'LV Trainer Wit',           categorie:'Schoenen',              prijs:125, foto:'', fotos:[]},
+  {id:'demo-5', titel:'Puffer Jas Zwart',         categorie:'Jassen',                prijs:89,  foto:'', fotos:[]},
+  {id:'demo-6', titel:'Voetbalshirt Custom',      categorie:'Shirts',                prijs:30,  foto:'', fotos:[]},
+  {id:'demo-7', titel:'Cargo Broek Beige',        categorie:'Broeken',               prijs:55,  foto:'', fotos:[]},
+  {id:'demo-8', titel:'Monogram Schoudertas',     categorie:'Tassen',                prijs:65,  foto:'', fotos:[]}
+];
+const DEMO = new URLSearchParams(location.search).has('demo') || !(window.SHOP_PRODUCTEN && window.SHOP_PRODUCTEN.length);
+const producten = DEMO ? DEMO_PRODUCTEN : window.SHOP_PRODUCTEN;
 
-  var CHECKOUT_URL = 'https://rep-finance-1t6z.onrender.com/checkout?amount=';
-  var WA_LINK = 'https://wa.me/31684805378';
-  var MIN_BESTELLING = 10;
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const euro = n => '€ ' + n;
+const byId = id => producten.find(p => String(p.id) === String(id));
+function debounce(fn, ms){ let t; return function(){ clearTimeout(t); t = setTimeout(fn, ms); }; }
 
-  // Elementen
-  var gridEl = document.getElementById('grid');
-  var zoekEl = document.getElementById('zoek');
-  var badgeEl = document.getElementById('badge');
-  var wagenKnopEl = document.getElementById('wagenKnop');
-  var wagenPaneelEl = document.getElementById('wagenPaneel');
-  var wagenLijstEl = document.getElementById('wagenLijst');
-  var sluitWagenEl = document.getElementById('sluitWagen');
-  var notitieEl = document.getElementById('notitie');
-  var subtotaalEl = document.getElementById('subtotaal');
-  var minHintEl = document.getElementById('minHint');
-  var afrekenEl = document.getElementById('afrekenKnop');
-  var detailOverlayEl = document.getElementById('detailOverlay');
-  var dFotoEl = document.getElementById('dFoto');
-  var dTitelEl = document.getElementById('dTitel');
-  var dPrijsEl = document.getElementById('dPrijs');
-  var dAantalEl = document.getElementById('dAantal');
-  var dMeerEl = document.getElementById('dMeer');
-  var dMinderEl = document.getElementById('dMinder');
-  var dNaarWagenEl = document.getElementById('dNaarWagen');
-  var betaalOverlayEl = document.getElementById('betaalOverlay');
-  var betaalBedragEl = document.getElementById('betaalBedrag');
-  var waLinkEl = document.getElementById('waLink');
+/* ---------- staat ---------- */
+let actieveCat = 'Alles';
+let lijst = [];
+let gerenderd = 0;
+let huidig = null;
 
-  // Staat
-  var wagen = [];        // [{id, aantal}]
-  var notitie = '';
-  var detailId = null;
-  var detailAantal = 1;
-
-  // Hulpjes
-  function euro(bedrag) {
-    return '€ ' + Number(bedrag).toFixed(2).replace('.', ',');
-  }
-  function lees(sleutel) {
-    try { return window.localStorage.getItem(sleutel); } catch (e) { return null; }
-  }
-  function schrijf(sleutel, waarde) {
-    try { window.localStorage.setItem(sleutel, waarde); } catch (e) {}
-  }
-  function productBijId(id) {
-    for (var i = 0; i < PRODUCTEN.length; i++) {
-      if (PRODUCTEN[i].id === id) { return PRODUCTEN[i]; }
-    }
-    return null;
-  }
-  function toonOverlay(el) { el.classList.remove('verberg'); }
-  function verbergOverlay(el) { el.classList.add('verberg'); }
-
-  // Opslag (overleeft herladen)
-  function laadOpslag() {
-    var rauw = lees('yzdemo_wagen');
-    if (rauw) {
-      try {
-        var geladen = JSON.parse(rauw);
-        if (Object.prototype.toString.call(geladen) === '[object Array]') {
-          geladen.forEach(function (r) {
-            var p = productBijId(r && r.id);
-            if (p && typeof r.aantal === 'number' && r.aantal > 0) {
-              wagen.push({ id: p.id, aantal: Math.floor(r.aantal) });
-            }
-          });
-        }
-      } catch (e) { wagen = []; }
-    }
-    notitie = lees('yzdemo_notitie') || '';
-    notitieEl.value = notitie;
-  }
-  function slaWagenOp() {
-    schrijf('yzdemo_wagen', JSON.stringify(wagen));
-  }
-
-  // Berekeningen
-  function subtotaal() {
-    var totaal = 0;
-    wagen.forEach(function (r) {
-      var p = productBijId(r.id);
-      if (p) { totaal += p.prijs * r.aantal; }
-    });
-    return totaal;
-  }
-  function telItems() {
-    var n = 0;
-    wagen.forEach(function (r) { n += r.aantal; });
-    return n;
-  }
-
-  // Grid + zoeken
-  function renderGrid() {
-    var q = zoekEl.value.trim().toLowerCase();
-    var html = '';
-    PRODUCTEN.forEach(function (p) {
-      if (q && p.titel.toLowerCase().indexOf(q) === -1) { return; }
-      html += '<article class="kaart" data-id="' + p.id + '" tabindex="0">' +
-        '<div class="foto" style="background:' + p.tint + '">' + p.emoji + '</div>' +
-        '<h3>' + p.titel + '</h3>' +
-        '<p class="prijs">' + euro(p.prijs) + '</p>' +
-        '</article>';
-    });
-    gridEl.innerHTML = html || '<p class="leeg">Geen producten gevonden.</p>';
-  }
-
-  // Detail-overlay
-  function openDetail(id) {
-    var p = productBijId(id);
-    if (!p) { return; }
-    detailId = p.id;
-    detailAantal = 1;
-    dFotoEl.style.background = p.tint;
-    dFotoEl.textContent = p.emoji;
-    dTitelEl.textContent = p.titel;
-    dPrijsEl.textContent = euro(p.prijs);
-    dAantalEl.textContent = '1';
-    toonOverlay(detailOverlayEl);
-  }
-
-  // Winkelwagen renderen
-  function renderWagen() {
-    badgeEl.textContent = String(telItems());
-    var html = '';
-    wagen.forEach(function (r) {
-      var p = productBijId(r.id);
-      if (!p) { return; }
-      html += '<div class="wagenRij">' +
-        '<div class="wagenFoto" style="background:' + p.tint + '">' + p.emoji + '</div>' +
-        '<div class="wagenInfo"><strong>' + p.titel + '</strong><span class="grijs">' + euro(p.prijs) + ' p/st</span></div>' +
-        '<div class="qtyRij klein">' +
-          '<button class="mini" type="button" data-act="min" data-id="' + r.id + '" aria-label="Minder">−</button>' +
-          '<span>' + r.aantal + '</span>' +
-          '<button class="mini" type="button" data-act="plus" data-id="' + r.id + '" aria-label="Meer">+</button>' +
-        '</div>' +
-        '<div class="rijTotaal">' + euro(p.prijs * r.aantal) + '</div>' +
-        '</div>';
-    });
-    wagenLijstEl.innerHTML = html || '<p class="leeg">Je winkelwagen is leeg.</p>';
-
-    var totaal = subtotaal();
-    subtotaalEl.textContent = euro(totaal);
-    afrekenEl.disabled = (wagen.length === 0) || (totaal < MIN_BESTELLING);
-    var teWeinig = (wagen.length > 0) && (totaal < MIN_BESTELLING);
-    minHintEl.classList.toggle('verberg', !teWeinig);
-  }
-
-  function zetAantal(id, nieuw) {
-    if (nieuw <= 0) {
-      wagen = wagen.filter(function (r) { return r.id !== id; });
-    } else {
-      wagen.forEach(function (r) { if (r.id === id) { r.aantal = nieuw; } });
-    }
-    slaWagenOp();
-    renderWagen();
-  }
-
-  // WhatsApp-tekst (bestelregels + opmerking)
-  function whatsappTekst() {
-    var regels = ['Bestelling via YZ Store:'];
-    wagen.forEach(function (r) {
-      var p = productBijId(r.id);
-      if (p) {
-        regels.push('- ' + r.aantal + '× ' + p.titel + ' — ' + euro(p.prijs * r.aantal));
-      }
-    });
-    regels.push('Totaal: ' + euro(subtotaal()));
-    if (notitie.trim()) { regels.push('Opmerking: ' + notitie.trim()); }
-    return regels.join('\n');
-  }
-
-  // Afrekenen: iDEAL-bedrag = exact het wagentotaal. De betaalpartner rekent
-  // af op hele euro's; als het totaal centen heeft tellen we die als zichtbare
-  // afronding bovenop, zodat het betaalde bedrag altijd klopt met het getoonde.
-  function afrekenen() {
-    var totaal = subtotaal();
-    if (wagen.length === 0 || totaal < MIN_BESTELLING) { return; }
-    var teBetalen = Math.ceil(totaal);
-    var afronding = teBetalen - totaal;
-    betaalBedragEl.textContent = euro(teBetalen);
-    var afrEl = document.getElementById('afrondingRegel');
-    if (afrEl) { afrEl.textContent = afronding > 0 ? 'incl. afronding ' + euro(afronding) : ''; }
-    var waTekst = whatsappTekst();
-    if (afronding > 0) { waTekst += '\n(afronding ' + euro(afronding) + ' verrekenen we)'; }
-    waLinkEl.href = WA_LINK + '?text=' + encodeURIComponent(waTekst);
-    toonOverlay(betaalOverlayEl);
-    window.setTimeout(function () {
-      window.location.href = CHECKOUT_URL + teBetalen.toFixed(2);
-    }, 700);
-  }
-
-  // Gebeurtenissen
-  zoekEl.addEventListener('input', renderGrid);
-
-  gridEl.addEventListener('click', function (ev) {
-    var kaart = ev.target && ev.target.closest ? ev.target.closest('.kaart') : null;
-    if (kaart) { openDetail(kaart.getAttribute('data-id')); }
-  });
-  gridEl.addEventListener('keydown', function (ev) {
-    if (ev.key !== 'Enter') { return; }
-    var kaart = ev.target && ev.target.closest ? ev.target.closest('.kaart') : null;
-    if (kaart) { openDetail(kaart.getAttribute('data-id')); }
-  });
-
-  dMeerEl.addEventListener('click', function () {
-    detailAantal += 1;
-    dAantalEl.textContent = String(detailAantal);
-  });
-  dMinderEl.addEventListener('click', function () {
-    if (detailAantal > 1) {
-      detailAantal -= 1;
-      dAantalEl.textContent = String(detailAantal);
-    }
-  });
-  dNaarWagenEl.addEventListener('click', function () {
-    if (!detailId) { return; }
-    var bestaand = null;
-    wagen.forEach(function (r) { if (r.id === detailId) { bestaand = r; } });
-    if (bestaand) { bestaand.aantal += detailAantal; }
-    else { wagen.push({ id: detailId, aantal: detailAantal }); }
-    slaWagenOp();
-    renderWagen();
-    verbergOverlay(detailOverlayEl);
-    wagenPaneelEl.classList.add('open');
-  });
-
-  detailOverlayEl.addEventListener('click', function (ev) {
-    if (ev.target === detailOverlayEl) { verbergOverlay(detailOverlayEl); }
-  });
-
-  var sluitKnoppen = document.querySelectorAll('[data-sluit]');
-  for (var s = 0; s < sluitKnoppen.length; s++) {
-    sluitKnoppen[s].addEventListener('click', function () {
-      var el = document.getElementById(this.getAttribute('data-sluit'));
-      if (el) { verbergOverlay(el); }
-    });
-  }
-
-  wagenKnopEl.addEventListener('click', function () {
-    wagenPaneelEl.classList.add('open');
-  });
-  sluitWagenEl.addEventListener('click', function () {
-    wagenPaneelEl.classList.remove('open');
-  });
-
-  wagenLijstEl.addEventListener('click', function (ev) {
-    var knop = ev.target && ev.target.closest ? ev.target.closest('button[data-act]') : null;
-    if (!knop) { return; }
-    var id = knop.getAttribute('data-id');
-    var rij = null;
-    wagen.forEach(function (r) { if (r.id === id) { rij = r; } });
-    if (!rij) { return; }
-    if (knop.getAttribute('data-act') === 'plus') { zetAantal(id, rij.aantal + 1); }
-    else { zetAantal(id, rij.aantal - 1); }
-  });
-
-  notitieEl.addEventListener('input', function () {
-    notitie = notitieEl.value;
-    schrijf('yzdemo_notitie', notitie);
-  });
-
-  afrekenEl.addEventListener('click', afrekenen);
-
-  document.addEventListener('keydown', function (ev) {
-    if (ev.key === 'Escape') {
-      verbergOverlay(detailOverlayEl);
-      wagenPaneelEl.classList.remove('open');
-    }
-  });
-
-  // Start
-  laadOpslag();
-  renderGrid();
+/* ---------- wagen (localStorage yzv2_cart, elk artikel uniek, qty=1) ---------- */
+function leesWagen(){
+  try { const w = JSON.parse(localStorage.getItem('yzv2_cart') || '[]'); return Array.isArray(w) ? w : []; }
+  catch(e){ return []; }
+}
+function schrijfWagen(w){ localStorage.setItem('yzv2_cart', JSON.stringify(w)); }
+function subtotaalVan(w){ return w.reduce((s, r) => s + (Number(r.prijs) || 0), 0); }
+function voegToe(p){
+  const w = leesWagen();
+  if (w.some(x => String(x.id) === String(p.id))) return false;
+  w.push({id: String(p.id), titel: p.titel, prijs: p.prijs, foto: p.foto || '', categorie: p.categorie || ''});
+  schrijfWagen(w);
   renderWagen();
-})();
+  return true;
+}
+function verwijder(id){
+  schrijfWagen(leesWagen().filter(x => String(x.id) !== String(id)));
+  renderWagen();
+}
+
+/* ---------- paneel/slot ---------- */
+function updateLock(){
+  const lock = $('overlay').classList.contains('open') || $('wagen').classList.contains('open');
+  document.body.classList.toggle('lock', lock);
+}
+function sluitOverlay(){ $('overlay').classList.remove('open'); huidig = null; updateLock(); }
+function openWagen(){ $('wagen').classList.add('open'); $('wagenAchtergrond').classList.add('open'); updateLock(); }
+function sluitWagen(){ $('wagen').classList.remove('open'); $('wagenAchtergrond').classList.remove('open'); verbergFout(); updateLock(); }
+
+/* ---------- categorie-chips met aantallen ---------- */
+function renderChips(){
+  const tellen = new Map();
+  for (const p of producten) tellen.set(p.categorie, (tellen.get(p.categorie) || 0) + 1);
+  const cats = [...tellen.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'nl'));
+  const balk = $('chips');
+  balk.innerHTML = '';
+  const maak = (naam, n) => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (naam === actieveCat ? ' actief' : '');
+    b.innerHTML = esc(naam) + ' <span class="n">' + n + '</span>';
+    b.addEventListener('click', () => { actieveCat = naam; renderChips(); reset(); window.scrollTo({top: 0}); });
+    balk.appendChild(b);
+  };
+  maak('Alles', producten.length);
+  for (const [c, n] of cats) maak(c, n);
+}
+
+/* ---------- grid met chunked rendering ---------- */
+const gridEl = $('grid');
+const sentinel = $('sentinel');
+
+function reset(){
+  const q = $('zoek').value.trim().toLowerCase();
+  lijst = producten
+    .filter(p => (actieveCat === 'Alles' || p.categorie === actieveCat) && (!q || (p.titel || '').toLowerCase().includes(q)))
+    .sort((a, b) => (a.titel || '').localeCompare(b.titel || '', 'nl'));
+  gerenderd = 0;
+  gridEl.innerHTML = '';
+  $('leeg').hidden = lijst.length > 0;
+  $('teller').textContent = lijst.length ? (lijst.length + (lijst.length === 1 ? ' product' : ' producten')) : '';
+  renderMeer();
+}
+
+function kaartHtml(p){
+  const img = p.foto
+    ? '<img loading="lazy" decoding="async" src="' + esc(p.foto) + '" alt="' + esc(p.titel) + '">'
+    : '';
+  return '<article class="product" data-id="' + esc(p.id) + '" tabindex="0" role="button" aria-label="' + esc(p.titel) + '">'
+    + '<div class="foto">' + img + '</div>'
+    + '<div class="info">'
+    + '<div class="naam">' + esc(p.titel) + '</div>'
+    + '<div class="cat">' + esc(p.categorie || '') + '</div>'
+    + '<div class="prijs">' + euro(p.prijs) + '</div>'
+    + '<div class="voor">1× op voorraad</div>'
+    + '</div></article>';
+}
+
+function renderMeer(){
+  if (gerenderd >= lijst.length) return;
+  const tot = Math.min(gerenderd + BATCH, lijst.length);
+  let html = '';
+  for (let i = gerenderd; i < tot; i++) html += kaartHtml(lijst[i]);
+  gridEl.insertAdjacentHTML('beforeend', html);
+  gerenderd = tot;
+  if (gerenderd < lijst.length){
+    const r = sentinel.getBoundingClientRect();
+    if (r.top < window.innerHeight + 700) setTimeout(renderMeer, 30); // vul bij tot ver voorbij de viewport (setTimeout i.p.v. rAF: werkt ook in niet-gerenderde tabs)
+  }
+}
+// Triggerings-net: IO (efficiënt), scroll/resize-events, en een goedkope interval-check als vangnet
+// (renderMeer = no-op zodra alles staat of de sentinel buiten bereik is).
+window.addEventListener('scroll', renderMeer, {passive: true});
+window.addEventListener('resize', renderMeer);
+setInterval(renderMeer, 350);
+if ('IntersectionObserver' in window){
+  new IntersectionObserver(entries => {
+    if (entries.some(e => e.isIntersecting)) renderMeer();
+  }, {rootMargin: '700px 0px'}).observe(sentinel);
+}
+
+/* ---------- kapotte/lege foto's → grijze tegel met 👟 ---------- */
+document.addEventListener('error', e => {
+  const t = e.target;
+  if (t && t.tagName === 'IMG' && !t.dataset.fout){
+    t.dataset.fout = '1';
+    t.style.display = 'none';
+    const k = t.parentElement;
+    if (k && k.classList.contains('foto')) k.classList.add('kapot');
+  }
+}, true);
+
+/* ---------- product-overlay ---------- */
+function fotosVoor(p){
+  const set = [];
+  for (const f of [p.foto].concat(p.fotos || [])) if (f && set.indexOf(f) === -1) set.push(f);
+  return set;
+}
+function zetHoofd(src){
+  const img = $('hoofdImg');
+  const kader = $('hoofdKader');
+  kader.classList.remove('kapot');
+  delete img.dataset.fout;
+  img.style.display = '';
+  if (!src){ img.removeAttribute('src'); kader.classList.add('kapot'); return; }
+  img.src = src;
+}
+function ovKnopStatus(){
+  const knop = $('ovAdd');
+  if (!huidig) return;
+  const al = leesWagen().some(x => String(x.id) === String(huidig.id));
+  knop.disabled = al;
+  knop.textContent = al ? '✓ Zit al in je winkelmand' : '🛒 In winkelmand';
+}
+function openOverlay(p){
+  huidig = p;
+  $('ovCat').textContent = p.categorie || '';
+  $('ovTitel').textContent = p.titel;
+  $('ovPrijs').textContent = euro(p.prijs);
+  const fs = fotosVoor(p);
+  zetHoofd(fs[0] || '');
+  const thumbs = $('thumbs');
+  thumbs.innerHTML = fs.map(f =>
+    '<button class="thumb foto" data-src="' + esc(f) + '"><img src="' + esc(f) + '" alt=""></button>'
+  ).join('');
+  thumbs.hidden = fs.length < 2;
+  ovKnopStatus();
+  $('overlay').classList.add('open');
+  updateLock();
+  $('overlaySluit').focus();
+}
+
+/* ---------- winkelmand weergeven ---------- */
+function renderWagen(){
+  const w = leesWagen();
+  const lijstEl = $('wagenLijst');
+  lijstEl.innerHTML = w.length ? w.map(r =>
+    '<div class="wagen-rij">'
+    + '<div class="foto w-foto' + (r.foto ? '' : ' kapot') + '">' + (r.foto ? '<img src="' + esc(r.foto) + '" alt="">' : '') + '</div>'
+    + '<div class="w-mid"><div class="w-naam">' + esc(r.titel) + '</div><div class="w-cat">' + esc(r.categorie || '') + '</div></div>'
+    + '<div class="w-prijs">' + euro(r.prijs) + '</div>'
+    + '<button class="w-x" data-id="' + esc(r.id) + '" aria-label="Verwijder ' + esc(r.titel) + '">✕</button>'
+    + '</div>'
+  ).join('') : '<div class="wagen-leeg">Je winkelmand is leeg.</div>';
+
+  const tot = subtotaalVan(w);
+  $('subtotaal').textContent = euro(tot);
+  const badge = $('badge');
+  badge.textContent = w.length;
+  badge.hidden = w.length === 0;
+  const teWeinig = w.length > 0 && tot < MIN_BESTEL;
+  $('minBericht').hidden = !teWeinig;
+  if (teWeinig) $('minBericht').textContent = 'Nog ' + euro(Math.ceil(MIN_BESTEL - tot)) + ' boven het minimum van ' + euro(MIN_BESTEL);
+  $('afrekKnop').disabled = !w.length || teWeinig || $('afrekKnop').dataset.bezig === '1';
+  ovKnopStatus();
+}
+
+/* ---------- afrekenen ---------- */
+function toonFout(titel, tekst){
+  const w = leesWagen();
+  const tot = subtotaalVan(w);
+  const bericht = 'Bestelling via YZ Store:\n' + w.map(r => '• ' + r.titel + ' — ' + euro(r.prijs)).join('\n') + '\nTotaal: ' + euro(tot);
+  $('foutTitel').textContent = titel;
+  $('foutTekst').textContent = tekst;
+  $('foutWa').href = 'https://wa.me/' + WA_NUMMER + '?text=' + encodeURIComponent(bericht);
+  $('foutBox').hidden = false;
+}
+function verbergFout(){ $('foutBox').hidden = true; }
+
+async function afrekenen(){
+  const w = leesWagen();
+  const tot = subtotaalVan(w);
+  if (!w.length || tot < MIN_BESTEL) return;
+  const knop = $('afrekKnop');
+  if (DEMO){
+    toonFout('Demo-modus', 'Afrekenen staat uit in deze demo. Je bestelling kun je via WhatsApp doorgeven — dan pakken we hem handmatig op.');
+    return;
+  }
+  knop.disabled = true;
+  knop.dataset.bezig = '1';
+  knop.textContent = 'Bezig…';
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 25000); // Render free tier kan even moeten opstarten
+    const res = await fetch(BACKEND + '/shop/intent', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({items: w.map(r => ({id: r.id, titel: r.titel, prijs: r.prijs, qty: 1}))}),
+      signal: ctrl.signal
+    });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!data || !data.ok || !data.intent_id) throw new Error('Ongeldig antwoord');
+    window.location.href = BACKEND + '/shop/checkout?id=' + encodeURIComponent(data.intent_id);
+    return;
+  } catch(e){
+    toonFout('Afrekenen lukt even niet', 'Er ging iets mis met de betaalserver. Probeer het zo nog een keer, of bestel direct via WhatsApp — we pakken je order handmatig op.');
+  } finally {
+    delete knop.dataset.bezig;
+    knop.textContent = 'Afrekenen →';
+    renderWagen();
+  }
+}
+
+/* ---------- events ---------- */
+$('zoek').addEventListener('input', debounce(reset, 120));
+
+gridEl.addEventListener('click', e => {
+  const kaart = e.target.closest('.product');
+  if (!kaart) return;
+  const p = byId(kaart.dataset.id);
+  if (p) openOverlay(p);
+});
+gridEl.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const kaart = e.target.closest('.product');
+  if (!kaart) return;
+  e.preventDefault();
+  const p = byId(kaart.dataset.id);
+  if (p) openOverlay(p);
+});
+
+$('thumbs').addEventListener('click', e => {
+  const t = e.target.closest('.thumb');
+  if (!t) return;
+  zetHoofd(t.dataset.src);
+  document.querySelectorAll('#thumbs .thumb').forEach(x => x.classList.toggle('actief', x === t));
+});
+
+$('overlaySluit').addEventListener('click', sluitOverlay);
+$('overlay').addEventListener('click', e => { if (e.target === $('overlay')) sluitOverlay(); });
+$('ovAdd').addEventListener('click', () => {
+  if (!huidig) return;
+  if (voegToe(huidig)){ sluitOverlay(); openWagen(); }
+  else ovKnopStatus();
+});
+
+$('wagenFAB').addEventListener('click', openWagen);
+$('wagenSluit').addEventListener('click', sluitWagen);
+$('wagenAchtergrond').addEventListener('click', sluitWagen);
+$('wagenLijst').addEventListener('click', e => {
+  const x = e.target.closest('.w-x');
+  if (x) verwijder(x.dataset.id);
+});
+$('afrekKnop').addEventListener('click', afrekenen);
+$('foutSluit').addEventListener('click', verbergFout);
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!$('foutBox').hidden){ verbergFout(); return; }
+  if ($('wagen').classList.contains('open')){ sluitWagen(); return; }
+  if ($('overlay').classList.contains('open')) sluitOverlay();
+});
+
+/* ---------- start ---------- */
+if (DEMO) $('demoBalk').hidden = false;
+renderChips();
+reset();
+renderWagen();
 </script>
 </body>
 </html>
