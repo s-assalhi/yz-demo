@@ -1,3 +1,19 @@
+/* YZ STORE PRODUCTENDATABASE - drop-in formaat
+   Dit bestand is de productendatabase van de shop. Vervang de lijst hieronder
+   door een nieuwe database: de shop (index.html) normaliseert bijna elk formaat
+   automatisch. Per product is alleen `titel` verplicht.
+   Velden + alias'sen die de shop herkent:
+   - titel | title | naam | name          (verplicht)
+   - prijs | price | prijs_eur            (getal of tekst "59" / " EUR 59,90" / "1.250,00";
+                                           geen geldige prijs => "Prijs op aanvraag" + WhatsApp-knop, geen iDEAL)
+   - foto | image | img | cover           (1 foto, string)
+   - fotos | photos | images | gallery    (array of losse string; kale bestandsnamen
+                                           krijgen automatisch img/ ervoor, volledige URL's werken ook)
+   - categorie | category | cat           (default "Overig")
+   - id | _id | sku                       (anders auto-nummer auto-1, auto-2, ...)
+   - voorraad                             (0 of lager = product verborgen)
+   Onbekende extra velden blijven meereizen (bijv. maat, kleur, beschrijving).
+   Let op: de iDEAL-betaallink rekent in hele euro's - prijzen dus in hele euro's. */
 window.SHOP_PRODUCTEN = [
  {
   "id": "1894837",

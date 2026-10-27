@@ -235,13 +235,59 @@ const DEMO_PRODUCTEN = [
   {id:'demo-7', titel:'Cargo Broek Beige',        categorie:'Broeken',               prijs:55,  foto:'', fotos:[]},
   {id:'demo-8', titel:'Monogram Schoudertas',     categorie:'Tassen',                prijs:65,  foto:'', fotos:[]}
 ];
+/* ---------- productendatabase drop-in --------------------------------------
+   Vervang producten.js door welke productendatabase je wilt — deze lader
+   normaliseert bijna elk formaat automatisch. Per product is alleen `titel`
+   verplicht. Herkende velden (alias'sen):
+   - titel|title|naam|name (verplicht)
+   - prijs|price|prijs_eur  → getal of tekst ("59", "€59,90", "1.250,00");
+     geen geldige prijs → "Prijs op aanvraag" (bestelt via WhatsApp, niet via iDEAL)
+   - foto|image|img|cover  → 1 foto (string); fotos|photos|images|gallery → array
+     of losse string. Kale bestandsnamen krijgen automatisch img/ ervoor,
+     volledige URL's (http(s)://, data:) werken onveranderd.
+   - categorie|category|cat → default "Overig"
+   - id|_id|sku → anders auto-nummer (auto-1, auto-2, …)
+   - voorraad → 0 of lager = product verborgen
+   Extra/onbekende velden blijven onaangetast meereizen. */
+function normaliseerProducten(bron){
+  if (!Array.isArray(bron)) return [];
+  const uit = [];
+  let auto = 0;
+  for (const r of bron){
+    if (!r || typeof r !== 'object') continue;
+    const titel = String(r.titel ?? r.title ?? r.naam ?? r.name ?? '').trim();
+    if (!titel) continue;
+    let prijs = r.prijs ?? r.price ?? r.prijs_eur ?? r.prijsEuro;
+    if (typeof prijs === 'string'){
+      let s = prijs.replace(/[^0-9.,-]/g, '');
+      if (s.includes(',') && s.includes('.')) s = s.replace(/\./g, '').replace(',', '.');
+      else s = s.replace(',', '.');
+      prijs = Number(s);
+    }
+    if (!(typeof prijs === 'number' && isFinite(prijs) && prijs > 0)) prijs = null;
+    if (r.voorraad !== undefined && Number(r.voorraad) <= 0) continue;
+    let fotos = r.fotos ?? r.photos ?? r.images ?? r.gallery;
+    if (typeof fotos === 'string') fotos = [fotos];
+    if (!Array.isArray(fotos)) fotos = [];
+    const ene = r.foto ?? r.image ?? r.img ?? r.cover;
+    if (typeof ene === 'string' && ene) fotos = [ene, ...fotos];
+    fotos = [...new Set(fotos.filter(f => typeof f === 'string' && f))]
+      .map(f => (/^[a-z][a-z0-9+.-]*:/i.test(f) || f.includes('/')) ? f : 'img/' + f);
+    uit.push({...r,
+      id: String(r.id ?? r._id ?? r.sku ?? ('auto-' + ++auto)),
+      titel, prijs, foto: fotos[0] || '', fotos: fotos.slice(0, 8),
+      categorie: String(r.categorie ?? r.category ?? r.cat ?? 'Overig').trim() || 'Overig'});
+  }
+  return uit;
+}
 const DEMO = new URLSearchParams(location.search).has('demo') || !(window.SHOP_PRODUCTEN && window.SHOP_PRODUCTEN.length);
-const producten = DEMO ? DEMO_PRODUCTEN : window.SHOP_PRODUCTEN;
+const producten = normaliseerProducten(DEMO ? DEMO_PRODUCTEN : window.SHOP_PRODUCTEN);
 
 /* ---------- helpers ---------- */
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const euro = n => '€ ' + n;
+const euro = n => '€ ' + Number(n);
+const prijsTekst = n => (Number(n) > 0) ? '€ ' + Number(n) : 'Prijs op aanvraag';
 const byId = id => producten.find(p => String(p.id) === String(id));
 function debounce(fn, ms){ let t; return function(){ clearTimeout(t); t = setTimeout(fn, ms); }; }
 
@@ -259,6 +305,7 @@ function leesWagen(){
 function schrijfWagen(w){ localStorage.setItem('yzv2_cart', JSON.stringify(w)); }
 function subtotaalVan(w){ return w.reduce((s, r) => s + (Number(r.prijs) || 0), 0); }
 function voegToe(p){
+  if (!(Number(p.prijs) > 0)) return false; // op aanvraag → niet in de wagen (WhatsApp-knop)
   const w = leesWagen();
   if (w.some(x => String(x.id) === String(p.id))) return false;
   w.push({id: String(p.id), titel: p.titel, prijs: p.prijs, foto: p.foto || '', categorie: p.categorie || ''});
@@ -323,7 +370,7 @@ function kaartHtml(p){
     + '<div class="info">'
     + '<div class="naam">' + esc(p.titel) + '</div>'
     + '<div class="cat">' + esc(p.categorie || '') + '</div>'
-    + '<div class="prijs">' + euro(p.prijs) + '</div>'
+    + '<div class="prijs">' + prijsTekst(p.prijs) + '</div>'
     + '<div class="voor">1× op voorraad</div>'
     + '</div></article>';
 }
@@ -380,15 +427,18 @@ function zetHoofd(src){
 function ovKnopStatus(){
   const knop = $('ovAdd');
   if (!huidig) return;
-  const al = leesWagen().some(x => String(x.id) === String(huidig.id));
+  const opAanvraag = !(Number(huidig.prijs) > 0);
+  const al = !opAanvraag && leesWagen().some(x => String(x.id) === String(huidig.id));
   knop.disabled = al;
-  knop.textContent = al ? '✓ Zit al in je winkelmand' : '🛒 In winkelmand';
+  knop.dataset.aanvraag = opAanvraag ? '1' : '';
+  knop.textContent = opAanvraag ? '💬 Vraag prijs via WhatsApp'
+                   : al ? '✓ Zit al in je winkelmand' : '🛒 In winkelmand';
 }
 function openOverlay(p){
   huidig = p;
   $('ovCat').textContent = p.categorie || '';
   $('ovTitel').textContent = p.titel;
-  $('ovPrijs').textContent = euro(p.prijs);
+  $('ovPrijs').textContent = prijsTekst(p.prijs);
   const fs = fotosVoor(p);
   zetHoofd(fs[0] || '');
   const thumbs = $('thumbs');
@@ -504,6 +554,11 @@ $('overlaySluit').addEventListener('click', sluitOverlay);
 $('overlay').addEventListener('click', e => { if (e.target === $('overlay')) sluitOverlay(); });
 $('ovAdd').addEventListener('click', () => {
   if (!huidig) return;
+  if ($('ovAdd').dataset.aanvraag === '1'){
+    const txt = 'Hi! Ik zag dit product op de site — wat kost hij? ' + huidig.titel;
+    window.open('https://wa.me/' + WA_NUMMER + '?text=' + encodeURIComponent(txt), '_blank', 'noopener');
+    return;
+  }
   if (voegToe(huidig)){ sluitOverlay(); openWagen(); }
   else ovKnopStatus();
 });
